@@ -1,11 +1,10 @@
 import React from "react";
-import Add from "../img/addAvatar.png";
 
 function Login() {
   return (
     <div className="formContainer">
       <div className="formWrapper">
-        <span className="formLogo">CHATSAKILA</span>
+        <span className="formLogo">PIGEONE</span>
         <span className="formTitle">Iniciar sesión</span>
         <form>
           <input

@@ -1,9 +1,14 @@
 import React from "react";
+import Chat from "../components/Chat";
+import Sidebar from "../components/Sidebar";
 
 function Home() {
   return (
-    <div>
-      <h1>Home</h1>
+    <div className="home">
+      <div className="home__container">
+        <Sidebar />
+        <Chat />
+      </div>
     </div>
   );
 }

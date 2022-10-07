@@ -5,7 +5,7 @@ function Register() {
   return (
     <div className="formContainer">
       <div className="formWrapper">
-        <span className="formLogo">CHATSAKILA</span>
+        <span className="formLogo">PIGEONE</span>
         <span className="formTitle">Registrarse</span>
         <form>
           <input
