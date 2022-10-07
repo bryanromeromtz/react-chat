@@ -27,6 +27,11 @@
   height: 100vh;
   width: 100vw;
   background-color: #a7bcf2;
+  @include mobile {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+  }
 
   .formWrapper {
     background-color: #fff;
@@ -37,6 +42,9 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    @include mobile {
+      padding: 20px 20px;
+    }
 
     .formLogo {
       color: #5d5b8c;
