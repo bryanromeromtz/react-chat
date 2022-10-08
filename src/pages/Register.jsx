@@ -1,12 +1,9 @@
 import React from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import {
-  getStorage,
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
-import { auth } from "../firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { auth, storage, db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
+import bcrypt from "bcryptjs";
 import Add from "../img/addAvatar.png";
 
 function Register() {
@@ -20,61 +17,70 @@ function Register() {
     const avatar = e.target.avatar.files[0];
     console.log(name, email, password, password2, avatar);
     if (password !== password2) {
-      alert("Las contraseñas no coinciden");
+      setErr(
+        "Las contraseñas no coinciden, era una vez un gato que se llamaba  gatito y era muy bonito"
+      );
+      return;
     } else {
       try {
         const res = await createUserWithEmailAndPassword(auth, email, password);
-        // .then((userCredential) => {
-        //   // Signed in
-        //   const user = userCredential.user;
-        //   console.log(user);
-        // })
-        // .catch((error) => {
-        //   const errorCode = error.code;
-        //   const errorMessage = error.message;
-        //   setErr("Algo salió mal, intente de nuevo");
-        //   // ..
-        // });
 
-        const storage = getStorage();
-        const storageRef = ref(storage, "images/rivers.jpg");
+        const storageRef = ref(storage, `avatars/${res.user.uid}`);
 
-        const uploadTask = uploadBytesResumable(storageRef, file);
+        const uploadTask = uploadBytesResumable(storageRef, avatar);
 
-        // Register three observers:
-        // 1. 'state_changed' observer, called any time the state changes
-        // 2. Error observer, called on failure
-        // 3. Completion observer, called on successful completion
         uploadTask.on(
           "state_changed",
           (snapshot) => {
-            // Observe state change events such as progress, pause, and resume
-            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
             const progress =
               (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log("Upload is " + progress + "% done");
+            console.log(`${progress}% completado de  ${snapshot.totalBytes}`);
+            setErr(`${progress}% completado de  ${snapshot.totalBytes}`);
             switch (snapshot.state) {
               case "paused":
-                console.log("Upload is paused");
+                console.log("La subida está pausada");
                 break;
               case "running":
-                console.log("Upload is running");
+                console.log("La subida está en curso");
+                break;
+              default:
+                console.log("No se ha podido subir el archivo");
                 break;
             }
           },
           (error) => {
-            // Handle unsuccessful uploads
+            setErr("Error al subir la imagen");
           },
           () => {
-            // Handle successful uploads on complete
-            // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-              console.log("File available at", downloadURL);
-            });
+            // Manejar cargas exitosas al completar
+            // Por ejemplo, obtener la URL de descarga de la imagen
+            // https://firebasestorage.googleapis.com/...
+            getDownloadURL(uploadTask.snapshot.ref).then(
+              async (downloadURL) => {
+                console.log("Archivo disponible en", downloadURL);
+                const userUpdate = await updateProfile(res.user, {
+                  displayName: name,
+                  photoURL: downloadURL,
+                });
+                console.log(userUpdate);
+
+                const hash = await bcrypt.hash(password, 10);
+                console.log(hash);
+                // añadir el usuario a la base de datos llamada users
+                await setDoc(doc(db, "users", res.user.uid), {
+                  uid: res.user.uid,
+                  name,
+                  email,
+                  password,
+                  avatar: downloadURL,
+                });
+              }
+            );
           }
         );
       } catch (err) {
         setErr("Algo salió mal, intente de nuevo");
+        console.log(err);
       }
     }
   };
@@ -121,8 +127,8 @@ function Register() {
             <img src={Add} alt="add" /> Agrega un avatar
           </label>
           <button type="submit">Registrarse</button>
-          {err && <span className="formError">{err}</span>}
         </form>
+        {err && <span className="form__error">{err}</span>}
         <p className="formText">
           ¿Ya tienes una cuenta? <a href="/login">Inicia sesión</a>
         </p>

@@ -7,6 +7,8 @@
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.1.1",
     "@testing-library/user-event": "^13.5.0",
+    "bcryptjs": "^2.4.3",
+    "crypto-es": "^1.2.7",
     "firebase": "^9.11.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

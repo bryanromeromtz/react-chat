@@ -104,6 +104,14 @@
         }
       }
     }
+    // ================== ERROR MESSAGE ==================
+    .form__error {
+      color: red;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      width: 300px;
+    }
     p {
       color: #5d5b8c;
       font-size: 16px;
