@@ -1,8 +1,17 @@
 import React from "react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import { auth } from "../firebase";
 import Add from "../img/addAvatar.png";
 
 function Register() {
-  const handleSubmit = (e) => {
+  const [err, setErr] = React.useState("");
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const name = e.target.username.value;
     const email = e.target.email.value;
@@ -10,32 +19,66 @@ function Register() {
     const password2 = e.target.password2.value;
     const avatar = e.target.avatar.files[0];
     console.log(name, email, password, password2, avatar);
-    // if (password !== password2) {
-    //   alert("Las contraseñas no coinciden");
-    // } else {
-    //   console.log("Todo bien");
-    //   fetch("http://localhost:4000/api/users/register", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       name,
-    //       email,
-    //       password,
-    //     }),
-    //   })
-    //     .then((res) => res.json())
-    //     .then((data) => {
-    //       if (data.error) {
-    //         alert(data.error);
-    //       } else {
-    //         alert("Usuario registrado con éxito");
-    //       }
-    //     })
-    //     .catch((err) => console.log(err));
-    // }
+    if (password !== password2) {
+      alert("Las contraseñas no coinciden");
+    } else {
+      try {
+        const res = await createUserWithEmailAndPassword(auth, email, password);
+        // .then((userCredential) => {
+        //   // Signed in
+        //   const user = userCredential.user;
+        //   console.log(user);
+        // })
+        // .catch((error) => {
+        //   const errorCode = error.code;
+        //   const errorMessage = error.message;
+        //   setErr("Algo salió mal, intente de nuevo");
+        //   // ..
+        // });
+
+        const storage = getStorage();
+        const storageRef = ref(storage, "images/rivers.jpg");
+
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        // Register three observers:
+        // 1. 'state_changed' observer, called any time the state changes
+        // 2. Error observer, called on failure
+        // 3. Completion observer, called on successful completion
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            // Observe state change events such as progress, pause, and resume
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log("Upload is " + progress + "% done");
+            switch (snapshot.state) {
+              case "paused":
+                console.log("Upload is paused");
+                break;
+              case "running":
+                console.log("Upload is running");
+                break;
+            }
+          },
+          (error) => {
+            // Handle unsuccessful uploads
+          },
+          () => {
+            // Handle successful uploads on complete
+            // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              console.log("File available at", downloadURL);
+            });
+          }
+        );
+      } catch (err) {
+        setErr("Algo salió mal, intente de nuevo");
+      }
+    }
   };
+
   return (
     <div className="formContainer">
       <div className="formWrapper">
@@ -78,6 +121,7 @@ function Register() {
             <img src={Add} alt="add" /> Agrega un avatar
           </label>
           <button type="submit">Registrarse</button>
+          {err && <span className="formError">{err}</span>}
         </form>
         <p className="formText">
           ¿Ya tienes una cuenta? <a href="/login">Inicia sesión</a>
