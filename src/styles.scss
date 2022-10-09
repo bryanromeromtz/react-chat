@@ -190,7 +190,7 @@
           }
 
           button {
-            background-color: #464d77;
+            background-color: #2c1320;
             border: none;
             outline: none;
             color: #fff;
@@ -199,6 +199,7 @@
             @include tablet {
               position: absolute;
               bottom: 10px;
+              background-color: #464d77;
             }
           }
         }
