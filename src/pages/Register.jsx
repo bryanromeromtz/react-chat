@@ -1,4 +1,4 @@
-import React from "react";
+import { React, useState } from "react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { auth, storage, db } from "../firebase";
@@ -8,9 +8,10 @@ import { useNavigate, Link } from "react-router-dom";
 import Add from "../img/addAvatar.png";
 
 function Register() {
-  const [err, setErr] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [avatarUser, setAvatarUser] = React.useState("");
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [avatarUser, setAvatarUser] = useState("");
+
   const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +28,11 @@ function Register() {
     console.log(name, email, password, password2, avatar);
     if (password !== password2) {
       setErr(
-        "Las contraseñas no coinciden, era una vez un gato que se llamaba  gatito y era muy bonito"
+        "Las contraseñas no coinciden, por favor verifique que sean iguales"
       );
+      return;
+    } else if (name.length > 10) {
+      setErr("El nombre es muy largo, por favor ingrese un nombre más corto");
       return;
     } else {
       try {
@@ -97,7 +101,7 @@ function Register() {
                     console.log("Error al encriptar la contraseña");
                   }
                   // Crear un documento en la colección llamada chats
-                  await setDoc(doc(db, "chats", res.user.uid), {})
+                  await setDoc(doc(db, "user_chats", res.user.uid), {})
                     .then(() => {
                       console.log("Documento creado");
                       navigate("/");
@@ -113,8 +117,15 @@ function Register() {
           }
         );
       } catch (err) {
-        setErr("Algo salió mal, intente de nuevo");
-        console.log(err);
+        if (err.code === "auth/email-already-in-use") {
+          setErr("El correo ya está en uso");
+        } else if (err.code === "auth/invalid-email") {
+          setErr("El correo no es válido");
+        } else if (err.code === "auth/weak-password") {
+          setErr("La contraseña debe tener al menos 6 caracteres");
+        } else {
+          setErr("Error al crear el usuario");
+        }
       }
     }
   };
