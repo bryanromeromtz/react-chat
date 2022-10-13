@@ -3,6 +3,7 @@ import {
   collection,
   query,
   where,
+  getDoc,
   getDocs,
   setDoc,
   doc,
@@ -39,7 +40,7 @@ function Search() {
       setErr(error);
     }
   };
-  console.log(user);
+
   const handleSelect = async (e) => {
     // Check whether the group (chats in firestore) already exists, if not create it
     const combinedId =
@@ -48,25 +49,42 @@ function Search() {
         : user.uid + currentUser.uid;
     console.log(combinedId);
     try {
-      const res = await getDocs(collection(db, "chats", combinedId));
-      if (res.empty) {
-        // Create chat in chats collection
-        await setDoc(doc(db, "chats", combinedId), {
-          messages: [],
+      const res = await getDoc(doc(db, "chats", combinedId));
+
+      if (!res.exists()) {
+        //create a chat in chats collection
+        await setDoc(doc(db, "chats", combinedId), { messages: [] });
+
+        // Create UserChat
+        await updateDoc(doc(db, "user_chats", currentUser.uid), {
+          [combinedId + ".user_info"]: {
+            uid: user.uid,
+            name: user.name,
+            avatar: user.avatar,
+          },
+          [combinedId + ".date"]: serverTimestamp(),
+        });
+
+        // Create UserChat to the other user
+        await updateDoc(doc(db, "user_chats", user.uid), {
+          [combinedId + ".user_info"]: {
+            uid: currentUser.uid,
+            name: currentUser.displayName,
+            avatar: currentUser.photoURL,
+          },
+          [combinedId + ".date"]: serverTimestamp(),
         });
       }
-      // Create UserChat
-      await updateDoc(doc(db, "user_chats", currentUser.uid), {
-        [combinedId + ".user_info"]: {
-          uid: user.uid,
-          displayName: user.name,
-          photoURL: user.avatar,
-        },
-        [combinedId + ".date"]: serverTimestamp(),
-      });
     } catch (error) {
       console.log(error);
     }
+    setUser(null);
+    setSearch("");
+  };
+
+  const handleChange = (e) => {
+    setSearch(e.target.value);
+    setErr("");
   };
   return (
     <div className="search">
@@ -78,7 +96,8 @@ function Search() {
           onKeyDown={(e) => {
             handleKeyDown(e);
           }}
-          onChange={(e) => setSearch(e.target.value)}
+          value={search}
+          onChange={(e) => handleChange(e)}
         />
       </div>
       {err && <span className="search__error">{err}</span>}
