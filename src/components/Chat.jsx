@@ -13,7 +13,11 @@ function Chat() {
   return (
     <div className="chat">
       <div className="chat__header">
-        <span>{name}</span>
+        <div className="chat__header__info">
+          {/* mostrar si hay imagen y nombre */}
+          {avatar && <img src={avatar} alt={name} />}
+          {name && <span>{name}</span>}
+        </div>
         <div className="chat__header__icons">
           <img src={Cam} alt="cam" />
           <img src={Add} alt="add" />

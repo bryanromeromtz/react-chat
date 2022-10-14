@@ -1,7 +1,13 @@
 import { React, useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { ChatContext } from "../context/ChatContext";
-import { arrayUnion, doc, Timestamp, updateDoc } from "firebase/firestore";
+import {
+  arrayUnion,
+  doc,
+  Timestamp,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { v4 as uuid } from "uuid";
 
@@ -18,7 +24,9 @@ function Input() {
   const { data } = useContext(ChatContext);
 
   const handleSend = async (e) => {
-    e.preventDefault();
+    if (text.trim() === "") {
+      return;
+    }
     if (file) {
       const storageRef = ref(storage, `imagesChat/${file.name}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
@@ -28,21 +36,10 @@ function Input() {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           console.log(`${progress}% completado de  ${snapshot.totalBytes}%`);
-          setErr(`${progress}% completado de  ${snapshot.totalBytes}%`);
-          switch (snapshot.state) {
-            case "paused":
-              console.log("La subida está pausada");
-              break;
-            case "running":
-              console.log("La subida está en curso");
-              break;
-            default:
-              console.log("No se ha podido subir el archivo");
-              break;
-          }
         },
         (error) => {
           setErr("Error al subir la imagen");
+          console.log(error);
         },
         () => {
           // Manejar cargas exitosas al completar
@@ -76,6 +73,22 @@ function Input() {
         }),
       });
     }
+    await updateDoc(doc(db, "user_chats", currentUser.uid), {
+      [data.chatId + ".lastMessage"]: {
+        text,
+      },
+      [data.chatId + ".lastMessageDate"]: serverTimestamp(),
+    });
+
+    await updateDoc(doc(db, "user_chats", data.user.uid), {
+      [data.chatId + ".lastMessage"]: {
+        text,
+      },
+      [data.chatId + ".lastMessageDate"]: serverTimestamp(),
+    });
+
+    setText("");
+    setFile(null);
   };
   return (
     <div className="input">
@@ -83,6 +96,7 @@ function Input() {
         placeholder="Escribe un mensaje..."
         type="text"
         onChange={(e) => setText(e.target.value)}
+        value={text}
       />
       <div className="input__send">
         <img src={Attach} alt="attach" />
@@ -95,7 +109,7 @@ function Input() {
         <label htmlFor="file">
           <img src={Img} alt="img" />
         </label>
-        <button onClick={(e) => handleSend(e)}>Enviar</button>
+        <button onClick={handleSend}>Enviar</button>
       </div>
     </div>
   );

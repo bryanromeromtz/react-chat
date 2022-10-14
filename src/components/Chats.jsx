@@ -29,21 +29,24 @@ function Chats() {
   const handleSelect = (user) => {
     dispatch({ type: "CHANGE_USER", payload: user });
   };
+
   return (
     <div className="chats">
-      {chatsArray?.map((chat) => (
-        <div
-          className="search__user-chat"
-          key={chat[0]}
-          onClick={() => handleSelect(chat[1].user_info)}
-        >
-          <img src={chat[1].user_info.avatar} alt={chat[1].user_info.name} />
-          <div className="search__user-chat__info">
-            <span>{chat[1].user_info.name}</span>
-            <p>{chat[1].user_info.lastMessage?.text}</p>
+      {chatsArray
+        ?.sort((a, b) => a[1].date - b[1].date)
+        .map((chat) => (
+          <div
+            className="search__user-chat"
+            key={chat[0]}
+            onClick={() => handleSelect(chat[1].user_info)}
+          >
+            <img src={chat[1].user_info.avatar} alt={chat[1].user_info.name} />
+            <div className="search__user-chat__info">
+              <span>{chat[1].user_info.name}</span>
+              <p>{chat[1].lastMessage?.text}</p>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
     </div>
   );
 }
