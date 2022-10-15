@@ -4,6 +4,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import Logout from "../img/logout.png";
 import { AuthContext } from "../context/AuthContext";
+import Logo from "../img/logo1.png";
 
 function Navbar() {
   const { currentUser } = useContext(AuthContext);
@@ -14,7 +15,9 @@ function Navbar() {
   };
   return (
     <div className="navbar">
-      <span className="navbar__logo">PIGEONE</span>
+      <span className="navbar__logo">
+        <img src={Logo} alt="logo" />
+      </span>
       <div className="navbar__user">
         <img src={currentUser.photoURL} alt="user" />
         <span>{currentUser.displayName}</span>

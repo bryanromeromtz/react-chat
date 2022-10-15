@@ -2,6 +2,7 @@
   "name": "booking",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://bryanromeromtz.github.io/pigeone",
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
@@ -31,6 +32,7 @@
     "file-loader": "^6.2.0",
     "firebase": "^9.11.0",
     "fs-extra": "^10.0.0",
+    "gh-pages": "^4.0.0",
     "html-webpack-plugin": "^5.5.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^27.4.3",
@@ -67,6 +69,8 @@
     "workbox-webpack-plugin": "^6.4.1"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js"
